@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>美元汇率与锂电材料价格趋势</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#eef1f4; --card:#ffffff; --card2:#f6f8fa; --ink:#17222d; --ink2:#48586a; --ink3:#7d8da0;
+        --line:#d9e0e8; --line2:#c3cedb;
+        --up:#c0392b; --up-bg:#fbeae8; --down:#0f8a5f; --down-bg:#e4f4ec; --flat:#5b6b7d; --flat-bg:#e9edf2;
+        --fx:#1f6fb2; --lc:#c77400; --lfp:#1f6fb2; --lipf:#b3541e;
+        --shadow:0 1px 2px rgba(23,34,45,.05),0 8px 24px -12px rgba(23,34,45,.18);
+        color-scheme:light;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#0c1219; --card:#141e29; --card2:#182433; --ink:#e8eef5; --ink2:#a9bacd; --ink3:#7186a0;
+          --line:#26364a; --line2:#334863;
+          --up:#e0655a; --up-bg:#3a2321; --down:#2fbf8f; --down-bg:#14352a; --flat:#93a5bb; --flat-bg:#1d2c3f;
+          --fx:#5aa7dd; --lc:#e79a35; --lfp:#5aa7dd; --lipf:#e08a4c;
+          --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.6);
+          color-scheme:dark;
+        }
+      }
+      *{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%}
+      body{margin:0;background:var(--bg);color:var(--ink);
+        font-family:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+        font-size:15px;line-height:1.65;}
+      .num{font-variant-numeric:tabular-nums lining-nums;letter-spacing:.01em}
+      .wrap{max-width:1120px;margin:0 auto;padding:0 16px 56px}
+
+      /* ---------- masthead ---------- */
+      .masthead{padding:30px 0 6px}
+      .masthead .dateline{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;color:var(--ink2);font-size:13px}
+      .masthead .dateline b{color:var(--ink)}
+      .snap{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--ink2);background:var(--card)}
+      .snap i{width:7px;height:7px;border-radius:50%;background:var(--down);display:inline-block}
+      h1{font-family:"Noto Serif SC","Songti SC",serif;font-weight:900;font-size:clamp(27px,5.4vw,42px);line-height:1.25;margin:10px 0 8px}
+      .lede{color:var(--ink2);max-width:46em;margin:0;font-size:15px}
+      .lede b{color:var(--ink)}
+
+      /* ---------- KPI strip ---------- */
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0 8px}
+      .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;box-shadow:var(--shadow)}
+      .kpi .k-label{font-size:12.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
+      .kpi .k-label .k-date{color:var(--ink3);font-size:12px;white-space:nowrap}
+      .kpi .k-value{font-size:29px;font-weight:900;line-height:1.2;margin:4px 0 2px}
+      .kpi .k-value small{font-size:13px;font-weight:500;color:var(--ink2);margin-left:4px}
+      .kpi .k-sub{font-size:12.5px;color:var(--ink2)}
+      .chip{display:inline-flex;align-items:center;gap:3px;font-size:12.5px;font-weight:700;border-radius:5px;padding:0 7px;line-height:1.7;white-space:nowrap}
+      .chip.up{color:var(--up);background:var(--up-bg)}
+      .chip.down{color:var(--down);background:var(--down-bg)}
+      .chip.flat{color:var(--flat);background:var(--flat-bg)}
+
+      /* ---------- sections ---------- */
+      section{margin-top:34px}
+      .sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:14px}
+      .sec-head h2{font-family:"Noto Serif SC","Songti SC",serif;font-size:22px;font-weight:900;margin:0}
+      .sec-head .sec-note{color:var(--ink2);font-size:13px}
+      .sec-head .sec-src{margin-left:auto;color:var(--ink3);font-size:12.5px}
+      .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:18px 18px 14px}
+      .chart-top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between}
+      .big-price{font-size:34px;font-weight:900;line-height:1.1}
+      .big-price small{font-size:14px;font-weight:500;color:var(--ink2)}
+      .price-meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-top:4px;color:var(--ink2);font-size:13px}
+      .ranges{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+      .ranges button{appearance:none;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;padding:6px 13px;cursor:pointer}
+      .ranges button+button{border-left:1px solid var(--line)}
+      .ranges button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:700}
+      .ranges button:focus-visible{outline:2px solid var(--fx);outline-offset:-2px}
+      .chartbox{position:relative;margin-top:10px}
+      .chartbox svg{display:block;width:100%;height:auto}
+      .tooltip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:7px;
+        padding:6px 10px;font-size:12.5px;line-height:1.5;white-space:nowrap;opacity:0;transition:opacity .12s;z-index:3;
+        box-shadow:0 6px 18px rgba(0,0,0,.25)}
+      .tooltip b{font-size:13.5px}
+      .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;border-top:1px dashed var(--line2);padding-top:12px}
+      .stats .st .st-l{font-size:12px;color:var(--ink3)}
+      .stats .st .st-v{font-size:16.5px;font-weight:700}
+      .axis-note{font-size:12px;color:var(--ink3);margin-top:6px}
+
+      /* ---------- materials ---------- */
+      .mats{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+      .mat{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:16px 18px 14px}
+      .mat .m-tag{display:inline-block;font-size:12px;font-weight:700;color:var(--bg);background:var(--ink);border-radius:4px;padding:1px 8px;letter-spacing:.06em}
+      .mat h3{display:inline;font-size:17.5px;font-weight:900;margin:0 0 0 8px}
+      .mat .m-prod{color:var(--ink2);font-size:13px;margin-top:2px}
+      .mat .m-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-top:8px}
+      .mat .m-price .v{font-size:27px;font-weight:900;line-height:1.15}
+      .mat .m-price .u{font-size:13px;color:var(--ink2)}
+      .mat .spark{margin-top:8px}
+      .mat .spark svg{display:block;width:100%;height:auto}
+      .mat .m-note{font-size:13px;color:var(--ink2);border-top:1px dashed var(--line2);margin-top:10px;padding-top:9px}
+      .mat .m-note b{color:var(--ink)}
+      .mat table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+      .mat table td,.mat table th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:right}
+      .mat table td:first-child,.mat table th:first-child{text-align:left}
+      .mat table th{color:var(--ink3);font-weight:500;font-size:12.5px;border-bottom:1px solid var(--line2)}
+      .mat table tr:last-child td{border-bottom:0}
+      .mat .m-src{font-size:12px;color:var(--ink3);margin-top:9px}
+
+      /* ---------- compare ---------- */
+      .legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink2);margin-top:2px}
+      .legend .sw{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+      /* ---------- tables ---------- */
+      .tables{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+      .tbl-card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px 18px 10px}
+      .tbl-card h3{font-size:15.5px;font-weight:900;margin:12px 0 4px}
+      table.data{width:100%;border-collapse:collapse;font-size:13.5px}
+      table.data th,table.data td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}
+      table.data th:first-child,table.data td:first-child{text-align:left}
+      table.data th{color:var(--ink3);font-weight:500;font-size:12.5px;border-bottom:1px solid var(--line2)}
+      table.data tr:last-child td{border-bottom:0}
+      td.up{color:var(--up);font-weight:700} td.down{color:var(--down);font-weight:700} td.flat{color:var(--flat)}
+
+      /* ---------- how / sources ---------- */
+      .how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+      .how .step{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+      .how .step .s-n{font-size:12px;font-weight:700;color:var(--ink3);letter-spacing:.08em}
+      .how .step .s-t{font-weight:900;font-size:15.5px;margin:2px 0 3px}
+      .how .step p{margin:0;font-size:13px;color:var(--ink2)}
+      .srcs{font-size:13px;color:var(--ink2)}
+      .srcs li{margin:3px 0}
+      a{color:var(--fx);text-decoration:none}
+      a:hover{text-decoration:underline}
+      footer{margin-top:36px;border-top:1px solid var(--line2);padding-top:14px;color:var(--ink3);font-size:12.5px}
+
+      @media (max-width:860px){
+        .kpis{grid-template-columns:1fr 1fr}
+        .mats,.tables{grid-template-columns:1fr}
+        .how{grid-template-columns:1fr}
+        .stats{grid-template-columns:1fr 1fr}
+      }
+      @media (max-width:420px){
+        .kpis{grid-template-columns:1fr}
+        .big-price{font-size:29px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .tooltip{transition:none}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="dateline">
+          <span><b>{{PAGE_DATE}}</b> {{WEEKDAY}}</span>
+          <span class="snap"><i></i>{{SNAPSHOT_LINE}}</span>
+        </div>
+        <h1>美元汇率与锂电四大材料<br />每日价格趋势</h1>
+        <p class="lede">{{LEDE}}</p>
+      <div style="margin-top:16px;border:2px solid var(--up);background:var(--up-bg);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.7"><b>免责声明：</b>本页数据来源于公开渠道，各数据处均有来源标注，仅供参考，请自行核实；本站不负责具体验证，亦不构成投资或采购建议。</div>
+      </header>
+
+      <!-- KPI strip -->
+      <div class="kpis num">
+        <div class="kpi">
+          <div class="k-label"><span>美元兑人民币（参考汇率）</span><span class="k-date">{{KPI_FX_DATE}}</span></div>
+          <div class="k-value">{{KPI_FX_VALUE}}</div>
+          <div class="k-sub">{{KPI_FX_SUB}}</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label"><span>碳酸锂期货 · 主力连续</span><span class="k-date">{{KPI_LC_DATE}}</span></div>
+          <div class="k-value">{{KPI_LC_VALUE}}<small>元/吨</small></div>
+          <div class="k-sub">{{KPI_LC_SUB}}</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label"><span>正极 · 磷酸铁锂参考价</span><span class="k-date">{{KPI_LFP_DATE}}</span></div>
+          <div class="k-value">{{KPI_LFP_VALUE}}<small>元/吨</small></div>
+          <div class="k-sub">{{KPI_LFP_SUB}}</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label"><span>电解液锂盐 · 六氟磷酸锂</span><span class="k-date">{{KPI_LIPF_DATE}}</span></div>
+          <div class="k-value">{{KPI_LIPF_VALUE}}<small>元/吨</small></div>
+          <div class="k-sub">{{KPI_LIPF_SUB}}</div>
+        </div>
+      </div>
+
+      <!-- FX -->
+      <section aria-labelledby="fx-h">
+        <div class="sec-head">
+          <h2 id="fx-h">美元汇率</h2>
+          <span class="sec-note">美元兑人民币 · 每日参考汇率（工作日更新）</span>
+          <span class="sec-src">来源：欧洲央行参考汇率（Frankfurter）</span>
+        </div>
+        <div class="card">
+          <div class="chart-top">
+            <div>
+              <div class="big-price num">{{FX_BIG_VALUE}} <small>USD/CNY · {{FX_BIG_DATE}}</small></div>
+              <div class="price-meta num">{{FX_BIG_META}}</div>
+            </div>
+            <div class="ranges num" role="group" aria-label="汇率图时间范围" id="fx-ranges">
+              <button type="button" data-n="21">近30日</button>
+              <button type="button" data-n="43">近60日</button>
+              <button type="button" data-n="64" aria-pressed="true">全部</button>
+            </div>
+          </div>
+          <div class="chartbox" id="fx-chart"></div>
+          <div class="stats num" id="fx-stats"></div>
+          <p class="axis-note">欧洲央行每日参考汇率与中国外汇交易中心中间价口径略有差异，走势一致；节假日欧洲央行沿用前值，曲线可能出现走平段。</p>
+        </div>
+      </section>
+
+      <!-- Lithium carbonate futures -->
+      <section aria-labelledby="lc-h">
+        <div class="sec-head">
+          <h2 id="lc-h">碳酸锂期货</h2>
+          <span class="sec-note">广州期货交易所 · 主力连续合约收盘价，锂价的风向标</span>
+          <span class="sec-src">来源：新浪财经期货行情</span>
+        </div>
+        <div class="card">
+          <div class="chart-top">
+            <div>
+              <div class="big-price num">{{LC_BIG_VALUE}} <small>元/吨 · {{LC_BIG_DATE}}收盘</small></div>
+              <div class="price-meta num">{{LC_BIG_META}}</div>
+            </div>
+            <div class="ranges num" role="group" aria-label="碳酸锂图时间范围" id="lc-ranges">
+              <button type="button" data-n="30">近30日</button>
+              <button type="button" data-n="60">近60日</button>
+              <button type="button" data-n="90" aria-pressed="true">近90日</button>
+            </div>
+          </div>
+          <div class="chartbox" id="lc-chart"></div>
+          <div class="stats num" id="lc-stats"></div>
+          <p class="axis-note">期货价格为广期所主力连续合约收盘价；现货价请以生意社碳酸锂（电池级）基准价等公开报价为准，两者口径不同，仅作趋势参考。</p>
+        </div>
+      </section>
+
+      <!-- Four materials -->
+      <section aria-labelledby="mat-h">
+        <div class="sec-head">
+          <h2 id="mat-h">锂离子电池四大原材料</h2>
+          <span class="sec-note">现货报价 · 元/吨（隔膜为元/㎡）</span>
+          <span class="sec-src">来源：生意社、Mysteel、TrendForce</span>
+        </div>
+        <div class="mats">
+
+          <article class="mat">
+            <span class="m-tag">正极</span><h3>磷酸铁锂</h3>
+            <div class="m-prod">生意社磷酸铁锂参考价（基准价）· 每日发布</div>
+            <div class="m-price num"><span class="v">{{LFP_PRICE}}</span><span class="u">元/吨 · {{LFP_DATE}}</span>{{LFP_CHIP}}</div>
+            <div class="spark" id="spark-lfp"></div>
+            <p class="m-note">{{NOTE_LFP}}</p>
+            <div class="m-src">来源：生意社磷酸铁锂频道（参考价）、Mysteel（动力型中间价）</div>
+          </article>
+
+          <article class="mat">
+            <span class="m-tag">负极</span><h3>人造石墨负极材料</h3>
+            <div class="m-prod">Mysteel 人造石墨负极材料市场价 · 日度</div>
+            <div class="m-price num"><span class="v">{{ANODE_PRICE}}</span><span class="u">元/吨 · {{ANODE_DATE}}</span>{{ANODE_CHIP}}</div>
+            <table class="num">
+              <tr><th>厂家报价（隆众资讯 10月28日）</th><th>低端</th><th>中端</th><th>高端</th></tr>
+              <tr><td>人造石墨负极（博路天成）</td><td>30,000</td><td>45,000</td><td>50,000–60,000</td></tr>
+              <tr><td>天然石墨负极（青岛海达）</td><td>21,000</td><td>26,000</td><td>45,000</td></tr>
+            </table>
+            <p class="m-note">{{NOTE_ANODE}}</p>
+            <div class="m-src">来源：Mysteel 负极材料行情、隆众资讯厂家报价（经 Mysteel 转载）</div>
+          </article>
+
+          <article class="mat">
+            <span class="m-tag">隔膜</span><h3>锂电隔膜</h3>
+            <div class="m-prod">湿法涂覆 7μm+2μm · 中国市场价（Mysteel 日度）</div>
+            <div class="m-price num"><span class="v">{{SEP_PRICE}}</span><span class="u">元/㎡ · {{SEP_DATE}}</span>{{SEP_CHIP}}</div>
+            <table class="num">
+              <tr><th>规格（TrendForce 10月22日均价）</th><th>元/㎡</th><th>涨跌幅</th></tr>
+              <tr><td>干法基膜 16μm</td><td>0.45</td><td class="flat" style="text-align:right">0.00%</td></tr>
+              <tr><td>湿法基膜 7μm</td><td>0.90</td><td class="flat" style="text-align:right">0.00%</td></tr>
+              <tr><td>湿法基膜 9μm</td><td>0.88</td><td class="flat" style="text-align:right">0.00%</td></tr>
+              <tr><td>涂覆隔膜 7μm+2μm 陶瓷</td><td>1.20</td><td class="flat" style="text-align:right">0.00%</td></tr>
+              <tr><td>涂覆隔膜 9μm+3μm 陶瓷</td><td>1.18</td><td class="flat" style="text-align:right">0.00%</td></tr>
+            </table>
+            <p class="m-note">{{NOTE_SEP}}</p>
+            <div class="m-src">来源：Mysteel 隔膜日度价格、TrendForce 集邦咨询、SMM 周度行情</div>
+          </article>
+
+          <article class="mat">
+            <span class="m-tag">电解液</span><h3>六氟磷酸锂（电解液锂盐）</h3>
+            <div class="m-prod">生意社六氟磷酸锂（电池级）基准价 · 每日发布</div>
+            <div class="m-price num"><span class="v">{{LIPF_PRICE}}</span><span class="u">元/吨 · {{LIPF_DATE}}</span>{{LIPF_CHIP}}</div>
+            <div class="spark" id="spark-lipf"></div>
+            <p class="m-note">{{NOTE_LIPF}}</p>
+            <div class="m-src">来源：生意社（基准价）、SMM 电解液周度回顾（成品均价）</div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- Indexed compare -->
+      <section aria-labelledby="cmp-h">
+        <div class="sec-head">
+          <h2 id="cmp-h">正极 vs 电解液锂盐</h2>
+          <span class="sec-note">近两周相对走势 · 以 10月15日 = 100 定基</span>
+          <span class="sec-src">来源：生意社基准价</span>
+        </div>
+        <div class="card">
+          <div class="legend num">
+            <span><span class="sw" style="background:var(--lfp)"></span>磷酸铁锂（正极）　两周 <b>{{CMP_LFP_2W}}</b></span>
+            <span><span class="sw" style="background:var(--lipf)"></span>六氟磷酸锂（电解液锂盐）　两周 <b>{{CMP_LIPF_2W}}</b></span>
+          </div>
+          <div class="chartbox" id="idx-chart"></div>
+          <p class="axis-note">两条线同源同口径（生意社每日基准价），这段时间锂盐跌得比正极成品更快，正极环节的加工价差被动走扩。</p>
+        </div>
+      </section>
+
+      <!-- Daily tables -->
+      <section aria-labelledby="tbl-h">
+        <div class="sec-head">
+          <h2 id="tbl-h">近10日明细</h2>
+          <span class="sec-note">每日数值与单日涨跌</span>
+        </div>
+        <div class="tables">
+          <div class="tbl-card">
+            <h3>美元兑人民币（参考汇率）</h3>
+            <table class="data num" id="fx-table">
+              <thead><tr><th>日期</th><th>汇率</th><th>日涨跌</th><th>涨跌幅</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="tbl-card">
+            <h3>碳酸锂期货主力收盘（元/吨）</h3>
+            <table class="data num" id="lc-table">
+              <thead><tr><th>日期</th><th>收盘</th><th>日涨跌</th><th>涨跌幅</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sources -->
+      <section aria-labelledby="src-h">
+        <div class="sec-head">
+          <h2 id="src-h">数据来源</h2>
+        </div>
+        <ul class="srcs" style="margin-top:16px;padding-left:20px">
+          <li>汇率：<a href="https://www.frankfurter.app/" target="_blank" rel="noopener">Frankfurter</a>（欧洲央行每日参考汇率）</li>
+          <li>碳酸锂期货：<a href="https://finance.sina.com.cn/futures/" target="_blank" rel="noopener">新浪财经期货</a>（广期所主力连续日线）</li>
+          <li>磷酸铁锂参考价：<a href="https://lfp.100ppi.com/" target="_blank" rel="noopener">生意社磷酸铁锂产业网</a>；六氟磷酸锂基准价：<a href="https://www.100ppi.com/news/list-14--2330-1.html" target="_blank" rel="noopener">生意社商品动态</a></li>
+          <li>现货交叉核对：<a href="https://www.mysteel.com/hot/1486334.html" target="_blank" rel="noopener">Mysteel 磷酸铁锂行情</a>、<a href="https://www.mysteel.com/hot/1522765.html" target="_blank" rel="noopener">Mysteel 六氟磷酸锂行情</a>、<a href="https://www.trendforce.cn/price/battery-price/separator" target="_blank" rel="noopener">TrendForce 隔膜价格</a>、<a href="https://news.metal.com/pt/newscontent/104186319-electrolyte-prices-declined-this-week-oct-26-29-2026-smm-lithium-battery-electrolyte-market-weekly-review" target="_blank" rel="noopener">SMM 电解液周度回顾</a></li>
+        </ul>
+      </section>
+
+      <footer>
+        {{FOOTER_LINE}}
+        <p style="margin-top:10px"><b>免责声明：</b>本页数据来源于公开渠道，各数据处均有来源标注，仅供参考，请自行核实；本站不负责具体验证，亦不构成投资或采购建议。现货品种（负极、隔膜）无公开免费日度序列时，本页展示最新已知报价并标明日期，不代表当日成交价。</p>
+      </footer>
+
+    </div>
+
+    <script>
+      /* ===== baked snapshot data (single source for charts, stats, tables) ===== */
+      var FX = {{FX_JSON}};
+      var LC = {{LC_JSON}};
+      var LFP = {{LFP_JSON}};
+      var LIPF = {{LIPF_JSON}};
+
+      var CSS = getComputedStyle(document.documentElement);
+      function vcss(n){ return CSS.getPropertyValue(n).trim(); }
+      function fmtInt(x){ return Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function md(d){ var p = d.split("-"); return (+p[1]) + "/" + (+p[2]); }
+      function full(d){ var p = d.split("-"); return p[0] + "年" + (+p[1]) + "月" + (+p[2]) + "日"; }
+
+      function niceTicks(min, max, count){
+        var span = max - min || 1, step0 = span / count, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+        var norm = step0 / mag, step = (norm < 1.5 ? 1 : norm < 3.5 ? 2 : norm < 7.5 ? 5 : 10) * mag;
+        var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+        for (var t = lo; t <= hi + step * 0.001; t += step) out.push(+t.toFixed(6));
+        return { ticks: out, lo: out[0], hi: out[out.length - 1] };
+      }
+
+      /* Generic single-series line chart with hover tooltip */
+      function lineChart(el, series, opts){
+        var W = 720, H = opts.height || 300, P = { l: 58, r: 14, t: 12, b: 26 };
+        var vals = series.map(function(p){ return p[1]; });
+        var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+        var pad = (max - min) * 0.08 || max * 0.02 || 1; min -= pad; max += pad;
+        var nt = niceTicks(min, max, 4); min = nt.lo; max = nt.hi;
+        var iw = W - P.l - P.r, ih = H - P.t - P.b;
+        function X(i){ return P.l + iw * (series.length === 1 ? 0.5 : i / (series.length - 1)); }
+        function Y(v){ return P.t + ih * (1 - (v - min) / (max - min)); }
+        var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + opts.label + '">';
+        nt.ticks.forEach(function(t){
+          var y = Y(t);
+          s += '<line x1="' + P.l + '" y1="' + y + '" x2="' + (W - P.r) + '" y2="' + y + '" stroke="' + vcss('--line') + '" stroke-width="1"/>';
+          s += '<text x="' + (P.l - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11.5" fill="' + vcss('--ink3') + '">' + opts.fmtTick(t) + '</text>';
+        });
+        var tickIdx = [];
+        var want = Math.min(6, series.length);
+        for (var k = 0; k < want; k++) tickIdx.push(Math.round(k * (series.length - 1) / (want - 1)));
+        tickIdx = tickIdx.filter(function(x, i, a){ return a.indexOf(x) === i; });
+        tickIdx.forEach(function(i){
+          s += '<text x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11.5" fill="' + vcss('--ink3') + '">' + md(series[i][0]) + '</text>';
+        });
+        var pts = series.map(function(p, i){ return X(i).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+        s += '<polyline points="' + pts + '" fill="none" stroke="' + opts.color + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+        var li = series.length - 1;
+        s += '<circle cx="' + X(li) + '" cy="' + Y(series[li][1]) + '" r="4" fill="' + opts.color + '" stroke="' + vcss('--card') + '" stroke-width="2"/>';
+        s += '<line class="ch-x" x1="0" y1="' + P.t + '" x2="0" y2="' + (P.t + ih) + '" stroke="' + vcss('--ink3') + '" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>';
+        s += '<circle class="ch-dot" r="4.5" fill="' + opts.color + '" stroke="' + vcss('--card') + '" stroke-width="2" opacity="0"/>';
+        s += '<rect class="ch-hit" x="' + P.l + '" y="' + P.t + '" width="' + iw + '" height="' + ih + '" fill="transparent"/>';
+        s += '</svg><div class="tooltip num"></div>';
+        el.innerHTML = s;
+        var svg = el.querySelector("svg"), tip = el.querySelector(".tooltip"),
+            xline = el.querySelector(".ch-x"), dot = el.querySelector(".ch-dot"), hit = el.querySelector(".ch-hit");
+        function move(evt){
+          var r = svg.getBoundingClientRect();
+          var cx = (evt.touches ? evt.touches[0].clientX : evt.clientX) - r.left;
+          var vx = cx / r.width * W;
+          var i = Math.round((vx - P.l) / iw * (series.length - 1));
+          i = Math.max(0, Math.min(series.length - 1, i));
+          var px = X(i), py = Y(series[i][1]);
+          xline.setAttribute("x1", px); xline.setAttribute("x2", px); xline.setAttribute("opacity", "1");
+          dot.setAttribute("cx", px); dot.setAttribute("cy", py); dot.setAttribute("opacity", "1");
+          var prev = i > 0 ? series[i - 1][1] : null;
+          var dHtml = "";
+          if (prev !== null){
+            var dv = series[i][1] - prev, pc = dv / prev * 100;
+            var col = dv > 0 ? vcss('--up') : dv < 0 ? vcss('--down') : vcss('--ink3');
+            dHtml = '<br/><span style="color:' + col + '">日 ' + (dv > 0 ? "+" : "") + opts.fmtVal(dv) + " (" + (pc > 0 ? "+" : "") + pc.toFixed(2) + '%)</span>';
+          }
+          tip.innerHTML = full(series[i][0]) + "<br/><b>" + opts.fmtVal(series[i][1]) + opts.unit + "</b>" + dHtml;
+          var tx = px / W * r.width, ty = py / H * r.height;
+          tip.style.opacity = "1";
+          var tw = tip.offsetWidth, th = tip.offsetHeight;
+          var lx = Math.max(2, Math.min(r.width - tw - 2, tx - tw / 2));
+          var ly = ty - th - 12; if (ly < 0) ly = ty + 14;
+          tip.style.left = lx + "px"; tip.style.top = ly + "px";
+        }
+        function leave(){ tip.style.opacity = "0"; xline.setAttribute("opacity", "0"); dot.setAttribute("opacity", "0"); }
+        hit.addEventListener("pointermove", move);
+        hit.addEventListener("pointerdown", move);
+        hit.addEventListener("pointerleave", leave);
+      }
+
+      function statsFor(el, series, fmtVal, unit){
+        var vals = series.map(function(p){ return p[1]; });
+        var first = series[0], last = series[series.length - 1];
+        var hi = Math.max.apply(null, vals), lo = Math.min.apply(null, vals);
+        var hiD = series[vals.indexOf(hi)][0], loD = series[vals.indexOf(lo)][0];
+        var chg = last[1] - first[1], pct = chg / first[1] * 100;
+        var cls = chg > 0 ? "var(--up)" : chg < 0 ? "var(--down)" : "var(--flat)";
+        el.innerHTML =
+          '<div class="st"><div class="st-l">区间最高 · ' + md(hiD) + '</div><div class="st-v">' + fmtVal(hi) + unit + '</div></div>' +
+          '<div class="st"><div class="st-l">区间最低 · ' + md(loD) + '</div><div class="st-v">' + fmtVal(lo) + unit + '</div></div>' +
+          '<div class="st"><div class="st-l">区间涨跌</div><div class="st-v" style="color:' + cls + '">' + (chg > 0 ? "+" : "") + fmtVal(chg) + unit + '</div></div>' +
+          '<div class="st"><div class="st-l">区间涨跌幅</div><div class="st-v" style="color:' + cls + '">' + (pct > 0 ? "+" : "") + pct.toFixed(2) + '%</div></div>';
+      }
+
+      /* FX chart + ranges */
+      var fxEl = document.getElementById("fx-chart"), fxStats = document.getElementById("fx-stats");
+      function drawFX(n){
+        var s = FX.slice(-n);
+        lineChart(fxEl, s, { color: vcss('--fx'), unit: "", height: 300, label: "美元兑人民币汇率走势图",
+          fmtVal: function(x){ return x.toFixed(4); }, fmtTick: function(x){ return x.toFixed(3); } });
+        statsFor(fxStats, s, function(x){ return x.toFixed(4); }, "");
+      }
+      drawFX(64);
+      document.getElementById("fx-ranges").addEventListener("click", function(e){
+        var b = e.target.closest("button"); if (!b) return;
+        this.querySelectorAll("button").forEach(function(x){ x.removeAttribute("aria-pressed"); });
+        b.setAttribute("aria-pressed", "true"); drawFX(+b.dataset.n);
+      });
+
+      /* LC chart + ranges */
+      var lcEl = document.getElementById("lc-chart"), lcStats = document.getElementById("lc-stats");
+      function drawLC(n){
+        var s = LC.slice(-n);
+        lineChart(lcEl, s, { color: vcss('--lc'), unit: " 元/吨", height: 300, label: "碳酸锂期货收盘价走势图",
+          fmtVal: fmtInt, fmtTick: function(x){ return fmtInt(x / 1000) + "k"; } });
+        statsFor(lcStats, s, fmtInt, "");
+      }
+      drawLC(90);
+      document.getElementById("lc-ranges").addEventListener("click", function(e){
+        var b = e.target.closest("button"); if (!b) return;
+        this.querySelectorAll("button").forEach(function(x){ x.removeAttribute("aria-pressed"); });
+        b.setAttribute("aria-pressed", "true"); drawLC(+b.dataset.n);
+      });
+
+      /* Sparklines */
+      function spark(el, series, color){
+        var W = 340, H = 74, P = { l: 4, r: 4, t: 8, b: 14 };
+        var vals = series.map(function(p){ return p[1]; });
+        var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+        var pad = (max - min) * 0.15 || max * 0.02; min -= pad; max += pad;
+        var iw = W - P.l - P.r, ih = H - P.t - P.b;
+        function X(i){ return P.l + iw * i / (series.length - 1); }
+        function Y(v){ return P.t + ih * (1 - (v - min) / (max - min)); }
+        var pts = series.map(function(p, i){ return X(i).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+        var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="近期价格走势">';
+        s += '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+        series.forEach(function(p, i){ s += '<circle cx="' + X(i) + '" cy="' + Y(p[1]) + '" r="2.4" fill="' + color + '"/>'; });
+        s += '<text x="' + P.l + '" y="' + (H - 2) + '" font-size="10.5" fill="' + vcss('--ink3') + '">' + md(series[0][0]) + '</text>';
+        var li = series.length - 1;
+        s += '<text x="' + (W - P.r) + '" y="' + (H - 2) + '" text-anchor="end" font-size="10.5" fill="' + vcss('--ink3') + '">' + md(series[li][0]) + " · " + fmtInt(series[li][1]) + '</text>';
+        s += '</svg>';
+        el.innerHTML = s;
+      }
+      spark(document.getElementById("spark-lfp"), LFP, vcss('--lfp'));
+      spark(document.getElementById("spark-lipf"), LIPF, vcss('--lipf'));
+
+      /* Indexed compare chart (common dates 10-15 .. 10-28) */
+      (function(){
+        var dates = LFP.map(function(p){ return p[0]; });
+        var a = LFP.map(function(p){ return p[1] / LFP[0][1] * 100; });
+        var bMap = {}; LIPF.forEach(function(p){ bMap[p[0]] = p[1]; });
+        var b = dates.map(function(d){ return bMap[d] / LIPF[0][1] * 100; });
+        var all = a.concat(b), min = Math.floor(Math.min.apply(null, all) - 1), max = Math.ceil(Math.max.apply(null, all) + 0.6);
+        var W = 720, H = 240, P = { l: 44, r: 14, t: 12, b: 26 }, iw = W - P.l - P.r, ih = H - P.t - P.b;
+        function X(i){ return P.l + iw * i / (dates.length - 1); }
+        function Y(v){ return P.t + ih * (1 - (v - min) / (max - min)); }
+        var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="磷酸铁锂与六氟磷酸锂定基指数对比图">';
+        for (var t = min; t <= max; t += 2){
+          s += '<line x1="' + P.l + '" y1="' + Y(t) + '" x2="' + (W - P.r) + '" y2="' + Y(t) + '" stroke="' + vcss('--line') + '"/>';
+          s += '<text x="' + (P.l - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end" font-size="11.5" fill="' + vcss('--ink3') + '">' + t + '</text>';
+        }
+        s += '<line x1="' + P.l + '" y1="' + Y(100) + '" x2="' + (W - P.r) + '" y2="' + Y(100) + '" stroke="' + vcss('--ink3') + '" stroke-dasharray="4 3"/>';
+        dates.forEach(function(d, i){
+          s += '<text x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11" fill="' + vcss('--ink3') + '">' + md(d) + '</text>';
+        });
+        function line(arr, color){
+          var pts = arr.map(function(v, i){ return X(i).toFixed(1) + "," + Y(v).toFixed(1); }).join(" ");
+          var li = arr.length - 1;
+          return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
+                 '<circle cx="' + X(li) + '" cy="' + Y(arr[li]) + '" r="4" fill="' + color + '" stroke="' + vcss('--card') + '" stroke-width="2"/>' +
+                 '<text x="' + (X(li) - 6) + '" y="' + (Y(arr[li]) - 8) + '" text-anchor="end" font-size="12.5" font-weight="700" fill="' + color + '">' + arr[li].toFixed(1) + '</text>';
+        }
+        s += line(a, vcss('--lfp')) + line(b, vcss('--lipf'));
+        s += '</svg>';
+        document.getElementById("idx-chart").innerHTML = s;
+      })();
+
+      /* Daily tables (last 10, newest first) */
+      function fillTable(id, series, fmtVal){
+        var rows = "";
+        for (var i = series.length - 1; i >= Math.max(1, series.length - 10); i--){
+          var d = series[i][1] - series[i - 1][1], pc = d / series[i - 1][1] * 100;
+          var cls = d > 0 ? "up" : d < 0 ? "down" : "flat";
+          var arrow = d > 0 ? "▲" : d < 0 ? "▼" : "—";
+          rows += "<tr><td>" + full(series[i][0]) + "</td><td>" + fmtVal(series[i][1]) + '</td><td class="' + cls + '">' +
+                  (d === 0 ? "0" : (d > 0 ? "+" : "−") + fmtVal(Math.abs(d))) + '</td><td class="' + cls + '">' + arrow + " " + Math.abs(pc).toFixed(2) + "%</td></tr>";
+        }
+        document.querySelector("#" + id + " tbody").innerHTML = rows;
+      }
+      fillTable("fx-table", FX, function(x){ return x.toFixed(4); });
+      fillTable("lc-table", LC, fmtInt);
+    </script>
+  </body>
+</html>
