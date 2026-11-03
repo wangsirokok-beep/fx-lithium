@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>美元汇率与锂电材料价格趋势</title>
+    <title>美元汇率与碳酸锂期货价格趋势</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet" />
@@ -47,7 +47,7 @@
       .lede b{color:var(--ink)}
 
       /* ---------- KPI strip ---------- */
-      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0 8px}
+      .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:22px 0 8px}
       .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;box-shadow:var(--shadow)}
       .kpi .k-label{font-size:12.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
       .kpi .k-label .k-date{color:var(--ink3);font-size:12px;white-space:nowrap}
@@ -154,10 +154,10 @@
       <header class="masthead">
         <div class="dateline">
           <span><b>2026年11月4日</b> 星期三</span>
-          <span class="snap"><i></i>数据更新 · 抓取于 11月4日 05:31（北京时间）</span>
+          <span class="snap"><i></i>数据更新 · 抓取于 11月4日 07:22（北京时间）</span>
         </div>
-        <h1>美元汇率与锂电四大材料<br />每日价格趋势</h1>
-        <p class="lede">美元兑人民币汇率、碳酸锂期货，再到正极、负极、隔膜、电解液四条材料线——本页由 GitHub Actions 每天自动抓取、经 Netlify 自动发布，收齐最新一个交易日的价格，看往哪边走、走了多少。最新数据：美元兑人民币 <b>6.6723</b>（11-03，欧洲央行参考价），碳酸锂期货主力收盘 <b>88,360 元/吨</b>（10-29收盘，单日−5.29%）；正极磷酸铁锂 <b>48,000 元/吨</b>（10-28，生意社参考价），电解液锂盐六氟磷酸锂 <b>105,000 元/吨</b>（10-29，生意社基准价）。</p>
+        <h1>美元汇率与碳酸锂期货<br />每日价格趋势</h1>
+        <p class="lede">美元兑人民币汇率与碳酸锂期货——本页由 GitHub Actions 每天自动抓取、经 Netlify 自动发布，收齐最新一个交易日的价格，看往哪边走、走了多少。最新数据：美元兑人民币 <b>6.6723</b>（11-03，欧洲央行参考价），碳酸锂期货主力收盘 <b>88,360 元/吨</b>（10-29收盘，单日−5.29%）。</p>
       <div style="margin-top:16px;border:2px solid var(--up);background:var(--up-bg);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.7"><b>免责声明：</b>本页数据来源于公开渠道，各数据处均有来源标注，仅供参考，请自行核实；本站不负责具体验证，亦不构成投资或采购建议。</div>
       </header>
 
@@ -172,16 +172,6 @@
           <div class="k-label"><span>碳酸锂期货 · 主力连续</span><span class="k-date">10-29 收盘</span></div>
           <div class="k-value">88,360<small>元/吨</small></div>
           <div class="k-sub"><span class="chip down">▼ −5.29%</span>&nbsp;单日 −4,940 元/吨</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label"><span>正极 · 磷酸铁锂参考价</span><span class="k-date">10-28</span></div>
-          <div class="k-value">48,000<small>元/吨</small></div>
-          <div class="k-sub"><span class="chip flat">— 暂无对比</span>&nbsp;近两周累计 暂无连续序列</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label"><span>电解液锂盐 · 六氟磷酸锂</span><span class="k-date">10-29</span></div>
-          <div class="k-value">105,000<small>元/吨</small></div>
-          <div class="k-sub"><span class="chip down">▼ −8.30%</span>&nbsp;近两周累计 −8.30%</div>
         </div>
       </div>
 
@@ -239,82 +229,6 @@
         </div>
       </section>
 
-      <!-- Four materials -->
-      <section aria-labelledby="mat-h">
-        <div class="sec-head">
-          <h2 id="mat-h">锂离子电池四大原材料</h2>
-          <span class="sec-note">现货报价 · 元/吨（隔膜为元/㎡）</span>
-          <span class="sec-src">来源：生意社、Mysteel、TrendForce</span>
-        </div>
-        <div class="mats">
-
-          <article class="mat">
-            <span class="m-tag">正极</span><h3>磷酸铁锂</h3>
-            <div class="m-prod">生意社磷酸铁锂参考价（基准价）· 每日发布</div>
-            <div class="m-price num"><span class="v">48,000</span><span class="u">元/吨 · 10月28日</span><span class="chip flat">— 持平</span></div>
-            <div class="spark" id="spark-lfp"></div>
-            <p class="m-note">最新报价 <b>48,000 元/吨</b>（2026年10月28日，生意社磷酸铁锂参考价）；较前次发布 0.00%。分档与口径说明见上线版备注：生意社参考价与 Mysteel 动力型中间价口径不同，看趋势以同一来源为准。</p>
-            <div class="m-src">来源：生意社磷酸铁锂频道（参考价）、Mysteel（动力型中间价）</div>
-          </article>
-
-          <article class="mat">
-            <span class="m-tag">负极</span><h3>人造石墨负极材料</h3>
-            <div class="m-prod">Mysteel 人造石墨负极材料市场价 · 日度</div>
-            <div class="m-price num"><span class="v">26,200</span><span class="u">元/吨 · 10月28日</span><span class="chip flat">— 以最新报价为准</span></div>
-            <table class="num">
-              <tr><th>厂家报价（隆众资讯 10月28日）</th><th>低端</th><th>中端</th><th>高端</th></tr>
-              <tr><td>人造石墨负极（博路天成）</td><td>30,000</td><td>45,000</td><td>50,000–60,000</td></tr>
-              <tr><td>天然石墨负极（青岛海达）</td><td>21,000</td><td>26,000</td><td>45,000</td></tr>
-            </table>
-            <p class="m-note">最新已知报价 <b>26,200 元/吨</b>（2026年10月28日，Mysteel 人造石墨负极材料市场价）。该品种无公开免费日度序列，本页保留上次已知值并标明日期；下表分档价为 10月28日公开值，仅作参考分档，不随每日任务刷新。</p>
-            <div class="m-src">来源：Mysteel 负极材料行情、隆众资讯厂家报价（经 Mysteel 转载）</div>
-          </article>
-
-          <article class="mat">
-            <span class="m-tag">隔膜</span><h3>锂电隔膜</h3>
-            <div class="m-prod">湿法涂覆 7μm+2μm · 中国市场价（Mysteel 日度）</div>
-            <div class="m-price num"><span class="v">1.15</span><span class="u">元/㎡ · 10月28日</span><span class="chip flat">— 以最新报价为准</span></div>
-            <table class="num">
-              <tr><th>规格（TrendForce 10月22日均价）</th><th>元/㎡</th><th>涨跌幅</th></tr>
-              <tr><td>干法基膜 16μm</td><td>0.45</td><td class="flat" style="text-align:right">0.00%</td></tr>
-              <tr><td>湿法基膜 7μm</td><td>0.90</td><td class="flat" style="text-align:right">0.00%</td></tr>
-              <tr><td>湿法基膜 9μm</td><td>0.88</td><td class="flat" style="text-align:right">0.00%</td></tr>
-              <tr><td>涂覆隔膜 7μm+2μm 陶瓷</td><td>1.20</td><td class="flat" style="text-align:right">0.00%</td></tr>
-              <tr><td>涂覆隔膜 9μm+3μm 陶瓷</td><td>1.18</td><td class="flat" style="text-align:right">0.00%</td></tr>
-            </table>
-            <p class="m-note">最新已知报价 <b>1.15 元/㎡</b>（2026年10月28日，Mysteel 隔膜日度价格）。该品种无公开免费日度序列，本页保留上次已知值并标明日期；下表为 TrendForce 10月22日均价分档，仅作参考，不随每日任务刷新。</p>
-            <div class="m-src">来源：Mysteel 隔膜日度价格、TrendForce 集邦咨询、SMM 周度行情</div>
-          </article>
-
-          <article class="mat">
-            <span class="m-tag">电解液</span><h3>六氟磷酸锂（电解液锂盐）</h3>
-            <div class="m-prod">生意社六氟磷酸锂（电池级）基准价 · 每日发布</div>
-            <div class="m-price num"><span class="v">105,000</span><span class="u">元/吨 · 10月29日</span><span class="chip flat">— 持平</span></div>
-            <div class="spark" id="spark-lipf"></div>
-            <p class="m-note">最新报价 <b>105,000 元/吨</b>（2026年10月29日，生意社六氟磷酸锂（电池级）基准价）；较前次发布 0.00%，近两周累计 −8.30%。成品电解液价格请以 SMM 周度回顾为准，本页锂盐卡只展示锂盐基准价。</p>
-            <div class="m-src">来源：生意社（基准价）、SMM 电解液周度回顾（成品均价）</div>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- Indexed compare -->
-      <section aria-labelledby="cmp-h">
-        <div class="sec-head">
-          <h2 id="cmp-h">正极 vs 电解液锂盐</h2>
-          <span class="sec-note">近两周相对走势 · 以 10月15日 = 100 定基</span>
-          <span class="sec-src">来源：生意社基准价</span>
-        </div>
-        <div class="card">
-          <div class="legend num">
-            <span><span class="sw" style="background:var(--lfp)"></span>磷酸铁锂（正极）　两周 <b>—</b></span>
-            <span><span class="sw" style="background:var(--lipf)"></span>六氟磷酸锂（电解液锂盐）　两周 <b>−8.30%</b></span>
-          </div>
-          <div class="chartbox" id="idx-chart"></div>
-          <p class="axis-note">两条线同源同口径（生意社每日基准价），这段时间锂盐跌得比正极成品更快，正极环节的加工价差被动走扩。</p>
-        </div>
-      </section>
-
       <!-- Daily tables -->
       <section aria-labelledby="tbl-h">
         <div class="sec-head">
@@ -347,14 +261,12 @@
         <ul class="srcs" style="margin-top:16px;padding-left:20px">
           <li>汇率：<a href="https://www.frankfurter.app/" target="_blank" rel="noopener">Frankfurter</a>（欧洲央行每日参考汇率）</li>
           <li>碳酸锂期货：<a href="https://finance.sina.com.cn/futures/" target="_blank" rel="noopener">新浪财经期货</a>（广期所主力连续日线）</li>
-          <li>磷酸铁锂参考价：<a href="https://lfp.100ppi.com/" target="_blank" rel="noopener">生意社磷酸铁锂产业网</a>；六氟磷酸锂基准价：<a href="https://www.100ppi.com/news/list-14--2330-1.html" target="_blank" rel="noopener">生意社商品动态</a></li>
-          <li>现货交叉核对：<a href="https://www.mysteel.com/hot/1486334.html" target="_blank" rel="noopener">Mysteel 磷酸铁锂行情</a>、<a href="https://www.mysteel.com/hot/1522765.html" target="_blank" rel="noopener">Mysteel 六氟磷酸锂行情</a>、<a href="https://www.trendforce.cn/price/battery-price/separator" target="_blank" rel="noopener">TrendForce 隔膜价格</a>、<a href="https://news.metal.com/pt/newscontent/104186319-electrolyte-prices-declined-this-week-oct-26-29-2026-smm-lithium-battery-electrolyte-market-weekly-review" target="_blank" rel="noopener">SMM 电解液周度回顾</a></li>
         </ul>
       </section>
 
       <footer>
-        本页由 GitHub Actions 每日自动更新：汇率截至 2026年11月3日（欧洲央行），碳酸锂期货截至 2026年10月29日收盘，磷酸铁锂截至 2026年10月28日、六氟磷酸锂截至 2026年10月29日（生意社），负极、隔膜为最新已知报价（2026年10月28日、2026年10月28日）。四大材料的完整日度现货序列主要在 SMM、上海钢联等付费库内，本页用公开报价呈现；个别品种日度波动极小、以最新报价为准。
-        <p style="margin-top:10px"><b>免责声明：</b>本页数据来源于公开渠道，各数据处均有来源标注，仅供参考，请自行核实；本站不负责具体验证，亦不构成投资或采购建议。现货品种（负极、隔膜）无公开免费日度序列时，本页展示最新已知报价并标明日期，不代表当日成交价。</p>
+        本页由 GitHub Actions 每日自动更新：汇率截至 2026年11月3日（欧洲央行），碳酸锂期货截至 2026年10月29日收盘。
+        <p style="margin-top:10px"><b>免责声明：</b>本页数据来源于公开渠道，各数据处均有来源标注，仅供参考，请自行核实；本站不负责具体验证，亦不构成投资或采购建议。</p>
       </footer>
 
     </div>
@@ -363,8 +275,6 @@
       /* ===== baked snapshot data (single source for charts, stats, tables) ===== */
       var FX = [["2026-07-27", 6.7661], ["2026-07-28", 6.7713], ["2026-07-29", 6.7663], ["2026-07-30", 6.7551], ["2026-07-31", 6.7513], ["2026-08-03", 6.7526], ["2026-08-04", 6.7535], ["2026-08-05", 6.75], ["2026-08-06", 6.7491], ["2026-08-07", 6.7476], ["2026-08-10", 6.7444], ["2026-08-11", 6.7453], ["2026-08-12", 6.7432], ["2026-08-13", 6.743], ["2026-08-14", 6.7413], ["2026-08-17", 6.7394], ["2026-08-18", 6.7423], ["2026-08-19", 6.7382], ["2026-08-20", 6.7236], ["2026-08-21", 6.7206], ["2026-08-24", 6.7227], ["2026-08-25", 6.7198], ["2026-08-26", 6.7205], ["2026-08-27", 6.7203], ["2026-08-28", 6.7209], ["2026-08-31", 6.7197], ["2026-09-01", 6.7223], ["2026-09-02", 6.7215], ["2026-09-03", 6.7191], ["2026-09-04", 6.7109], ["2026-09-07", 6.711], ["2026-09-08", 6.7105], ["2026-09-09", 6.7078], ["2026-09-10", 6.7063], ["2026-09-11", 6.7082], ["2026-09-14", 6.7084], ["2026-09-15", 6.7115], ["2026-09-16", 6.7071], ["2026-09-17", 6.7075], ["2026-09-18", 6.6976], ["2026-09-21", 6.6954], ["2026-09-22", 6.7001], ["2026-09-23", 6.7074], ["2026-09-24", 6.7126], ["2026-09-25", 6.7132], ["2026-09-28", 6.7105], ["2026-09-29", 6.7034], ["2026-09-30", 6.7045], ["2026-10-01", 6.7045], ["2026-10-02", 6.7046], ["2026-10-05", 6.7046], ["2026-10-06", 6.7046], ["2026-10-07", 6.7046], ["2026-10-08", 6.7023], ["2026-10-09", 6.6921], ["2026-10-12", 6.6928], ["2026-10-13", 6.6938], ["2026-10-14", 6.6927], ["2026-10-15", 6.691], ["2026-10-16", 6.6862], ["2026-10-19", 6.6807], ["2026-10-20", 6.678], ["2026-10-21", 6.6761], ["2026-10-22", 6.6743], ["2026-10-23", 6.6702], ["2026-10-26", 6.6681], ["2026-10-27", 6.6675], ["2026-10-28", 6.6664], ["2026-10-29", 6.6616], ["2026-10-30", 6.6529], ["2026-11-02", 6.6483], ["2026-11-03", 6.6723]];
       var LC = [["2026-06-17", 171300], ["2026-06-18", 160500], ["2026-06-22", 161740], ["2026-06-23", 157220], ["2026-06-24", 162740], ["2026-06-25", 150840], ["2026-06-26", 150220], ["2026-06-29", 153920], ["2026-06-30", 163360], ["2026-07-01", 164560], ["2026-07-02", 164040], ["2026-07-03", 168780], ["2026-07-06", 164560], ["2026-07-07", 163360], ["2026-07-08", 158440], ["2026-07-09", 153020], ["2026-07-10", 151600], ["2026-07-13", 152240], ["2026-07-14", 153180], ["2026-07-15", 149240], ["2026-07-16", 151660], ["2026-07-17", 150140], ["2026-07-20", 143900], ["2026-07-21", 141620], ["2026-07-22", 143300], ["2026-07-23", 145000], ["2026-07-24", 144280], ["2026-07-27", 147220], ["2026-07-28", 143480], ["2026-07-29", 147900], ["2026-07-30", 141060], ["2026-07-31", 137760], ["2026-08-03", 138900], ["2026-08-04", 139380], ["2026-08-05", 143220], ["2026-08-06", 141460], ["2026-08-07", 140000], ["2026-08-10", 146360], ["2026-08-11", 145860], ["2026-08-12", 149700], ["2026-08-13", 152120], ["2026-08-14", 155240], ["2026-08-17", 153500], ["2026-08-18", 155400], ["2026-08-19", 150660], ["2026-08-20", 152160], ["2026-08-21", 158680], ["2026-08-24", 158860], ["2026-08-25", 150280], ["2026-08-26", 152160], ["2026-08-27", 152020], ["2026-08-28", 159600], ["2026-08-31", 161000], ["2026-09-01", 157860], ["2026-09-02", 154780], ["2026-09-03", 149880], ["2026-09-04", 141940], ["2026-09-07", 142200], ["2026-09-08", 143480], ["2026-09-09", 142000], ["2026-09-10", 141300], ["2026-09-11", 134820], ["2026-09-14", 132340], ["2026-09-15", 129120], ["2026-09-16", 125820], ["2026-09-17", 131180], ["2026-09-18", 127160], ["2026-09-21", 132500], ["2026-09-22", 134400], ["2026-09-23", 128900], ["2026-09-24", 124420], ["2026-09-28", 119040], ["2026-09-29", 118780], ["2026-09-30", 118420], ["2026-10-08", 117300], ["2026-10-09", 117000], ["2026-10-12", 104740], ["2026-10-13", 107060], ["2026-10-14", 100900], ["2026-10-15", 98820], ["2026-10-16", 96320], ["2026-10-19", 100560], ["2026-10-20", 100520], ["2026-10-21", 95040], ["2026-10-22", 94180], ["2026-10-23", 97280], ["2026-10-26", 95280], ["2026-10-27", 98500], ["2026-10-28", 93300], ["2026-10-29", 88360]];
-      var LFP = [["2026-10-15", 50000], ["2026-10-16", 48667], ["2026-10-19", 48667], ["2026-10-20", 48667], ["2026-10-21", 48000], ["2026-10-22", 48000], ["2026-10-23", 48000], ["2026-10-27", 48000], ["2026-10-28", 48000]];
-      var LIPF = [["2026-10-15", 114500], ["2026-10-16", 114500], ["2026-10-19", 112500], ["2026-10-20", 112500], ["2026-10-21", 112500], ["2026-10-22", 110000], ["2026-10-23", 109000], ["2026-10-27", 106000], ["2026-10-28", 105000], ["2026-10-29", 105000]];
 
       var CSS = getComputedStyle(document.documentElement);
       function vcss(n){ return CSS.getPropertyValue(n).trim(); }
@@ -507,40 +417,6 @@
         s += '</svg>';
         el.innerHTML = s;
       }
-      spark(document.getElementById("spark-lfp"), LFP, vcss('--lfp'));
-      spark(document.getElementById("spark-lipf"), LIPF, vcss('--lipf'));
-
-      /* Indexed compare chart (common dates 10-15 .. 10-28) */
-      (function(){
-        var dates = LFP.map(function(p){ return p[0]; });
-        var a = LFP.map(function(p){ return p[1] / LFP[0][1] * 100; });
-        var bMap = {}; LIPF.forEach(function(p){ bMap[p[0]] = p[1]; });
-        var b = dates.map(function(d){ return bMap[d] / LIPF[0][1] * 100; });
-        var all = a.concat(b), min = Math.floor(Math.min.apply(null, all) - 1), max = Math.ceil(Math.max.apply(null, all) + 0.6);
-        var W = 720, H = 240, P = { l: 44, r: 14, t: 12, b: 26 }, iw = W - P.l - P.r, ih = H - P.t - P.b;
-        function X(i){ return P.l + iw * i / (dates.length - 1); }
-        function Y(v){ return P.t + ih * (1 - (v - min) / (max - min)); }
-        var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="磷酸铁锂与六氟磷酸锂定基指数对比图">';
-        for (var t = min; t <= max; t += 2){
-          s += '<line x1="' + P.l + '" y1="' + Y(t) + '" x2="' + (W - P.r) + '" y2="' + Y(t) + '" stroke="' + vcss('--line') + '"/>';
-          s += '<text x="' + (P.l - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end" font-size="11.5" fill="' + vcss('--ink3') + '">' + t + '</text>';
-        }
-        s += '<line x1="' + P.l + '" y1="' + Y(100) + '" x2="' + (W - P.r) + '" y2="' + Y(100) + '" stroke="' + vcss('--ink3') + '" stroke-dasharray="4 3"/>';
-        dates.forEach(function(d, i){
-          s += '<text x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11" fill="' + vcss('--ink3') + '">' + md(d) + '</text>';
-        });
-        function line(arr, color){
-          var pts = arr.map(function(v, i){ return X(i).toFixed(1) + "," + Y(v).toFixed(1); }).join(" ");
-          var li = arr.length - 1;
-          return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
-                 '<circle cx="' + X(li) + '" cy="' + Y(arr[li]) + '" r="4" fill="' + color + '" stroke="' + vcss('--card') + '" stroke-width="2"/>' +
-                 '<text x="' + (X(li) - 6) + '" y="' + (Y(arr[li]) - 8) + '" text-anchor="end" font-size="12.5" font-weight="700" fill="' + color + '">' + arr[li].toFixed(1) + '</text>';
-        }
-        s += line(a, vcss('--lfp')) + line(b, vcss('--lipf'));
-        s += '</svg>';
-        document.getElementById("idx-chart").innerHTML = s;
-      })();
-
       /* Daily tables (last 10, newest first) */
       function fillTable(id, series, fmtVal){
         var rows = "";
