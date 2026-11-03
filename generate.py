@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""美元汇率 + 锂电材料价格：每日抓取与页面生成器。
+"""美元汇率 + 碳酸锂期货价格：每日抓取与页面生成器。
 
 只用 Python 标准库，不需要安装任何依赖，可在 GitHub Actions 的
 ubuntu-latest + Python 3.12 上直接跑。
@@ -9,10 +9,9 @@ ubuntu-latest + Python 3.12 上直接跑。
   - 碳酸锂期货：新浪财经日线接口，广期所主力连续（品种代码 LC + 0 = LC0）。
     该接口在本机验证环境因域名策略屏蔽未能直接打开，接口形式有多份
     公开资料佐证；生成器将其作为首选尝试，失败则保留上次序列并告警。
-  - 磷酸铁锂 / 六氟磷酸锂：生意社公开页面正则抓取（日度基准价行）。
-    命中机器人验证页或解析不到时，保留上次值并告警。
-  - 负极 / 隔膜：无公开免费日度接口（Mysteel 日度页需登录/JS，
-    TrendForce 与 SMM 为周度或付费），策略为保留上次已知值并标明日期。
+  - 电池材料（磷酸铁锂、负极、隔膜、六氟磷酸锂）已于 2026-11-03 从页面删除：
+    生意社两源头被 JS 验证页结构性拦截，负极/隔膜无公开免费日度接口；
+    本生成器不再抓取或展示电池材料，只保留汇率与碳酸锂期货。
 
 用法：
   python3 generate.py            # 正常跑：抓取 + 合并 + 生成 index.html
@@ -42,10 +41,6 @@ WEEKDAYS = ["星期一", "星期二", "星期三", "星期四", "星期五", "�
 SOURCES = {
     "fx": "欧洲央行每日参考汇率（经 Frankfurter 转发）",
     "lc": "新浪财经期货行情（广期所主力连续）",
-    "lfp": "生意社磷酸铁锂参考价",
-    "lipf": "生意社六氟磷酸锂（电池级）基准价",
-    "anode": "Mysteel 人造石墨负极材料市场价",
-    "separator": "Mysteel 隔膜日度价格",
 }
 
 
@@ -118,46 +113,6 @@ def fetch_lc():
         except Exception as exc:  # noqa: BLE001 - 换下一个地址重试
             last_err = exc
     raise RuntimeError("新浪 LC0 日线抓取失败：%s" % last_err)
-
-
-def _parse_100ppi_dates(text, patterns, today):
-    """从生意社页面文本里解析 (月, 日, 价) -> [(日期, 价)]。"""
-    found = []
-    for pat in patterns:
-        for m in re.finditer(pat, text):
-            month, day = int(m.group(1)), int(m.group(2))
-            val = float(m.group(3).replace(",", ""))
-            year = today.year
-            try:
-                d = date(year, month, day)
-            except ValueError:
-                continue
-            if d > today:  # 跨年：月份大于当前月时算上一年
-                d = date(year - 1, month, day)
-            found.append((d.isoformat(), val))
-    return found
-
-
-def fetch_100ppi(url, patterns):
-    """生意社页面尽力抓取；命中验证页或无匹配时返回 None（保留上次值）。"""
-    text = http_get(url)
-    if "安全检查" in text and "参考价" not in text and "基准价" not in text:
-        return None
-    pts = _parse_100ppi_dates(text, patterns, date.today())
-    return pts or None
-
-
-LFP_PATTERNS = [
-    r"(\d{1,2})月(\d{1,2})日，磷酸铁锂参考价为([\d,]+(?:\.\d+)?)",
-    r"(\d{1,2})月(\d{1,2})日生意社磷酸铁锂基准价为([\d,]+(?:\.\d+)?)元/吨",
-]
-LIPF_PATTERNS = [
-    r"(\d{1,2})月(\d{1,2})日生意社六氟磷酸锂\(电池级\)基准价为([\d,]+(?:\.\d+)?)元/吨",
-    r"(\d{1,2})月(\d{1,2})日，六氟磷酸锂参考价为([\d,]+(?:\.\d+)?)",
-]
-
-LFP_URL = "https://lfp.100ppi.com/"
-LIPF_URL = "https://www.100ppi.com/news/list--1217-1.html"
 
 
 # ---------------------------------------------------------------- 格式化
@@ -261,48 +216,14 @@ def main():
     else:
         status["lc"] = "offline, 保留上次值"
 
-    # ---- 生意社现货（尽力抓取） ----
-    for key, url, patterns, series_key in (
-        ("lfp", LFP_URL, LFP_PATTERNS, "lfp"),
-        ("lipf", LIPF_URL, LIPF_PATTERNS, "lipf"),
-    ):
-        if offline:
-            status[key] = "offline, 保留上次值"
-            continue
-        try:
-            pts = fetch_100ppi(url, patterns)
-            if pts:
-                data[series_key] = merge_series(data[series_key], pts)
-                data[series_key] = data[series_key][-30:]
-                status[key] = "ok (%s)" % data[series_key][-1][0]
-            else:
-                status[key] = "未解析到新值（可能命中验证页），保留上次值"
-        except Exception as exc:  # noqa: BLE001
-            status[key] = "FAILED, 保留上次值：%s" % exc
-            print("WARN %s:" % key, exc, file=sys.stderr)
-
-    # ---- 负极 / 隔膜：无公开免费日度接口，保留上次已知值 ----
-    status["anode"] = "无公开免费日度接口，保留上次值 (%s)" % data["spot"]["anode"]["date"]
-    status["separator"] = "无公开免费日度接口，保留上次值 (%s)" % data["spot"]["separator"]["date"]
-
     # ---- 计算展示值 ----
     fx = data["fx"]
     lc = data["lc"]
-    lfp = data["lfp"]
-    lipf = data["lipf"]
     fx_last, fx_prev = fx[-1], fx[-2]
     lc_last, lc_prev = lc[-1], lc[-2]
-    lfp_last, lfp_prev = lfp[-1], lfp[-2]
-    lipf_last, lipf_prev = lipf[-1], lipf[-2]
     fx_chg = (fx_last[1] - fx_prev[1]) / fx_prev[1] * 100
     lc_chg = (lc_last[1] - lc_prev[1]) / lc_prev[1] * 100
-    lfp_chg = (lfp_last[1] - lfp_prev[1]) / lfp_prev[1] * 100
-    lipf_chg = (lipf_last[1] - lipf_prev[1]) / lipf_prev[1] * 100
     fx_30d = change_over(fx, fx_last[0], 30)
-    lfp_2w = change_over(lfp, lfp_last[0], 14)
-    lipf_2w = change_over(lipf, lipf_last[0], 14)
-    anode = data["spot"]["anode"]
-    sep = data["spot"]["separator"]
 
     now_bj = datetime.now(BJ)
     tokens = {
@@ -311,21 +232,16 @@ def main():
         "SNAPSHOT_LINE": "数据更新 · 抓取于 %s月%s日 %s（北京时间）"
         % (now_bj.month, now_bj.day, now_bj.strftime("%H:%M")),
         "LEDE": (
-            "美元兑人民币汇率、碳酸锂期货，再到正极、负极、隔膜、电解液四条材料线——"
+            "美元兑人民币汇率与碳酸锂期货——"
             "本页由 GitHub Actions 每天自动抓取、经 Netlify 自动发布，收齐最新一个交易日的价格，"
             "看往哪边走、走了多少。最新数据：美元兑人民币 <b>%s</b>（%s，欧洲央行参考价），"
-            "碳酸锂期货主力收盘 <b>%s 元/吨</b>（%s收盘，单日%s）；正极磷酸铁锂 <b>%s 元/吨</b>"
-            "（%s，生意社参考价），电解液锂盐六氟磷酸锂 <b>%s 元/吨</b>（%s，生意社基准价）。"
+            "碳酸锂期货主力收盘 <b>%s 元/吨</b>（%s收盘，单日%s）。"
             % (
                 "%.4f" % fx_last[1],
                 md(fx_last[0]),
                 fmt_int(lc_last[1]),
                 md(lc_last[0]),
                 pct_str(lc_chg),
-                fmt_int(lfp_last[1]),
-                md(lfp_last[0]),
-                fmt_int(lipf_last[1]),
-                md(lipf_last[0]),
             )
         ),
         # KPI
@@ -341,14 +257,6 @@ def main():
         "KPI_LC_VALUE": fmt_int(lc_last[1]),
         "KPI_LC_SUB": "%s&nbsp;单日 %s 元/吨"
         % (chip_for_pct(lc_chg), fmt_signed(lc_last[1] - lc_prev[1])),
-        "KPI_LFP_DATE": md(lfp_last[0]),
-        "KPI_LFP_VALUE": fmt_int(lfp_last[1]),
-        "KPI_LIPF_DATE": md(lipf_last[0]),
-        "KPI_LIPF_VALUE": fmt_int(lipf_last[1]),
-        "KPI_LFP_SUB": "%s&nbsp;近两周累计 %s"
-        % (chip_for_pct(lfp_2w), pct_str(lfp_2w) if lfp_2w is not None else "暂无连续序列"),
-        "KPI_LIPF_SUB": "%s&nbsp;近两周累计 %s"
-        % (chip_for_pct(lipf_2w), pct_str(lipf_2w) if lipf_2w is not None else "暂无连续序列"),
         # 大图
         "FX_BIG_VALUE": "%.4f" % fx_last[1],
         "FX_BIG_DATE": zh_date(fx_last[0])[5:],
@@ -369,60 +277,13 @@ def main():
             if lc_range and lc_range.get("date") == lc_last[0]
             else "暂无当日区间（源未更新）",
         ),
-        # 材料卡
-        "LFP_PRICE": fmt_int(lfp_last[1]),
-        "LFP_DATE": zh_date(lfp_last[0])[5:],
-        "LFP_CHIP": chip_for_pct(lfp_chg),
-        "ANODE_PRICE": fmt_int(anode["value"]),
-        "ANODE_DATE": zh_date(anode["date"])[5:],
-        "ANODE_CHIP": '<span class="chip flat">— 以最新报价为准</span>',
-        "SEP_PRICE": "%.2f" % sep["value"],
-        "SEP_DATE": zh_date(sep["date"])[5:],
-        "SEP_CHIP": '<span class="chip flat">— 以最新报价为准</span>',
-        "LIPF_PRICE": fmt_int(lipf_last[1]),
-        "LIPF_DATE": zh_date(lipf_last[0])[5:],
-        "LIPF_CHIP": chip_for_pct(lipf_chg),
-        "NOTE_LFP": "最新报价 <b>%s 元/吨</b>（%s，%s）；较前次发布 %s。分档与口径说明见上线版备注："
-        "生意社参考价与 Mysteel 动力型中间价口径不同，看趋势以同一来源为准。"
-        % (
-            fmt_int(lfp_last[1]),
-            zh_date(lfp_last[0]),
-            SOURCES["lfp"],
-            pct_str(lfp_chg),
-        ),
-        "NOTE_ANODE": "最新已知报价 <b>%s 元/吨</b>（%s，%s）。该品种无公开免费日度序列，"
-        "本页保留上次已知值并标明日期；下表分档价为 10月28日公开值，仅作参考分档，不随每日任务刷新。"
-        % (fmt_int(anode["value"]), zh_date(anode["date"]), SOURCES["anode"]),
-        "NOTE_SEP": "最新已知报价 <b>%s 元/㎡</b>（%s，%s）。该品种无公开免费日度序列，"
-        "本页保留上次已知值并标明日期；下表为 TrendForce 10月22日均价分档，仅作参考，不随每日任务刷新。"
-        % ("%.2f" % sep["value"], zh_date(sep["date"]), SOURCES["separator"]),
-        "NOTE_LIPF": "最新报价 <b>%s 元/吨</b>（%s，%s）；较前次发布 %s，近两周累计 %s。"
-        "成品电解液价格请以 SMM 周度回顾为准，本页锂盐卡只展示锂盐基准价。"
-        % (
-            fmt_int(lipf_last[1]),
-            zh_date(lipf_last[0]),
-            SOURCES["lipf"],
-            pct_str(lipf_chg),
-            pct_str(lipf_2w) if lipf_2w is not None else "暂无连续序列",
-        ),
-        "CMP_LFP_2W": pct_str(lfp_2w) if lfp_2w is not None else "—",
-        "CMP_LIPF_2W": pct_str(lipf_2w) if lipf_2w is not None else "—",
-        "FOOTER_LINE": "本页由 GitHub Actions 每日自动更新：汇率截至 %s（欧洲央行），碳酸锂期货截至 %s收盘，"
-        "磷酸铁锂截至 %s、六氟磷酸锂截至 %s（生意社），负极、隔膜为最新已知报价（%s、%s）。"
-        "四大材料的完整日度现货序列主要在 SMM、上海钢联等付费库内，本页用公开报价呈现；"
-        "个别品种日度波动极小、以最新报价为准。"
+        "FOOTER_LINE": "本页由 GitHub Actions 每日自动更新：汇率截至 %s（欧洲央行），碳酸锂期货截至 %s收盘。"
         % (
             zh_date(fx_last[0]),
             zh_date(lc_last[0]),
-            zh_date(lfp_last[0]),
-            zh_date(lipf_last[0]),
-            zh_date(anode["date"]),
-            zh_date(sep["date"]),
         ),
         "FX_JSON": json.dumps(fx, ensure_ascii=False),
         "LC_JSON": json.dumps(lc, ensure_ascii=False),
-        "LFP_JSON": json.dumps(lfp, ensure_ascii=False),
-        "LIPF_JSON": json.dumps(lipf, ensure_ascii=False),
     }
 
     template = TEMPLATE_FILE.read_text(encoding="utf-8")
@@ -451,16 +312,12 @@ def main():
     for k, v in status.items():
         print("  %s: %s" % (k, v))
     print(
-        "最新：汇率 %s（%s），期货 %s（%s），磷酸铁锂 %s（%s），六氟磷酸锂 %s（%s）"
+        "最新：汇率 %s（%s），期货 %s（%s）"
         % (
             "%.4f" % fx_last[1],
             fx_last[0],
             fmt_int(lc_last[1]),
             lc_last[0],
-            fmt_int(lfp_last[1]),
-            lfp_last[0],
-            fmt_int(lipf_last[1]),
-            lipf_last[0],
         )
     )
     print("页面已生成：%s（内容变化：%s；数据变化：%s）" % (OUTPUT_FILE, changed, data_changed))
